@@ -17,6 +17,12 @@ void NetworkInterface::listInterfaces() {
         throw NetworkException(1, "pcap_findalldevs() failed: " + string(errbuf));
     }
 
+    // disable ncurses to print to stdout
+    if (ncursesRunning) {
+        endwin();
+        ncursesRunning = false;
+    }
+
     // list all active interfaces
     cout << endl << "Active interfaces:" << endl;
     for (pcap_if_t* i = alldevsp; i; i = i->next) {

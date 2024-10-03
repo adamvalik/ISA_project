@@ -1,58 +1,83 @@
-// const int col_positions[] = {1, 49, 101, 112, 120, 133, 141}; 
+/**
+ * @file StatsDisplay.cpp
+ * @brief StatsDisplay class implementation
+ * 
+ * @author Adam Valík <xvalik05@vutbr.cz>
+ * 
+*/
 
+#include "StatsDisplay.hpp"
 
-// void draw_table(WINDOW *win, vector<vector<string>>& data) {
-//     mvwprintw(win, 2, 1, "                  SRC IP:PORT                                     DST IP:PORT                      PROTO        b/s  RX  p/s         b/s  TX  p/s    ");
-// //                       |[ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff]:65535|[ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff]:65535|    TCP    |   130.8M  130.8M   |   130.8M  130.8M   |
+const int col_positions[] = {1, 49, 101, 113, 122, 134, 143}; // column positions for data
+const int header_positions[] = {19, 67, 100, 113, 134}; // column positions for headers
+const int lines_positions[] = {48, 96, 108, 129}; // vertical lines positions
 
+void StatsDisplay::drawTable(vector<Connection>& data) {
+    //"                  SRC IP:PORT                                     DST IP:PORT                      PROTO        b/s  RX  p/s         b/s  TX  p/s    ");
+    //|[ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff]:65535|[ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff]:65535|    TCP    |    20        20   |   130.8M  130.8M   |
+    // header 
+    mvwprintw(this->tableWin, 2, header_positions[0], "SRC IP:PORT");
+    mvwprintw(this->tableWin, 2, header_positions[1], "DST IP:PORT");
+    mvwprintw(this->tableWin, 2, header_positions[2], "PROTO");
+    mvwprintw(this->tableWin, 2, header_positions[3], "b/s  RX  p/s");
+    mvwprintw(this->tableWin, 2, header_positions[4], "b/s  TX  p/s");
 
-//     mvwhline(win, 4, 1, 0, 149);  
+    // lines
+    mvwhline(this->tableWin, 4, 1, 0, 149);  
+    mvwvline(this->tableWin, 1, lines_positions[0], 0, 14);  
+    mvwvline(this->tableWin, 1, lines_positions[1], 0, 14);  
+    mvwvline(this->tableWin, 1, lines_positions[2], 0, 14);  
+    mvwvline(this->tableWin, 1, lines_positions[3], 0, 14);  
 
-//     mvwvline(win, 1, 48, 0, 14);  
-//     mvwvline(win, 1, 96, 0, 14);  
-//     mvwvline(win, 1, 108, 0, 14);  
-//     mvwvline(win, 1, 129, 0, 14);  
+    // data
+    for (size_t i = 0; i < data.size(); i++) {
+        Connection conn = data[i];
+        mvwprintw(this->tableWin, 5 + i, col_positions[0], conn.getSrc().c_str());
+        mvwprintw(this->tableWin, 5 + i, col_positions[1], conn.getDst().c_str());
+        mvwprintw(this->tableWin, 5 + i, col_positions[2], conn.getProtocol().c_str());
+        mvwprintw(this->tableWin, 5 + i, col_positions[3], this->formatPerSec(conn.getRxBytes()).c_str());
+        mvwprintw(this->tableWin, 5 + i, col_positions[4], this->formatPerSec(conn.getRxPackets()).c_str());
+        mvwprintw(this->tableWin, 5 + i, col_positions[5], this->formatPerSec(conn.getTxBytes()).c_str());
+        mvwprintw(this->tableWin, 5 + i, col_positions[6], this->formatPerSec(conn.getTxPackets()).c_str());
+    }
+   
+    wrefresh(this->tableWin);  // refresh the window to show the table
+}
 
-//     // Rows for data
-//     for (int i = 0; i < data.size(); ++i) {
-//         for (int j = 0; j < data[i].size(); ++j) {
-//             mvwprintw(win, i + 5, col_positions[j], "%s", data[i][j].c_str());
-//         }
-//     }
+string StatsDisplay::formatPerSec(uint64_t bytes) {
+    double value = static_cast<double>(bytes);
+    double bytesPerSec = value / this->updateInterval;
+    string postfix = "";
+
+    if (bytesPerSec >= 1e9) {
+        bytesPerSec = bytesPerSec / 1e9;
+        postfix = "G";
+    } else if (bytesPerSec >= 1e6) {
+        bytesPerSec = bytesPerSec / 1e6;
+        postfix = "M";
+    } else if (bytesPerSec >= 1e3) {
+        bytesPerSec = bytesPerSec / 1e3;
+        postfix = "k";
+    }
     
-//     wrefresh(win);  // Refresh the window to show the table
-// }
+    ostringstream out;
+    out << fixed << setprecision(1) << bytesPerSec; 
+    out << postfix;
+    return out.str();
+}
 
-// int table_rows = 10, table_cols = 7;
-//     vector<vector<string>> table_data(table_rows, vector<string>(table_cols, "0"));
+void StatsDisplay::run() {
+    while (running) {
+        werase(this->tableWin);
+        box(this->tableWin, 0, 0);
 
-//     WINDOW *table_win = newwin(16, 151, 0, 0);  // Create a window for the table
-    
+        dataMutex.lock();
+        vector<Connection> data = this->connectionCol.getConnections();
+        this->connectionCol.eraseTable(); 
+        dataMutex.unlock();
 
-//     for (int seconds = 0; seconds < 3; ++seconds) {
-//         // Simulate table data update (just increment values for example)
-//         for (int i = 0; i < table_rows; ++i) {
-//             for (int j = 0; j < table_cols; ++j) {
-//                 table_data[i][j] = to_string(i * table_cols + j + seconds);
-//             }
-//         }
+        drawTable(data); 
 
-//         vector<vector<string>> data = {
-//             {"[2001:67c:1220:ff00::17]:43521", "[2a00:1450:4014:80e::200e]:443", "tcp", "20.2M", "5.2k", "2.1M", "426.2"},
-//             {"[2001:67c:1220:ff00::17]:43521", "[2a00:1450:4014:80e::200e]:443", "tcp", "20.2M", "5.2k", "2.1M", "426.2"},
-//             {"103.69.171.108:50438", "95.82.190.248:36622", "tcp", "30.1M", "6.2k", "2.2M", "548.2"},
-//             {"[ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff]:65535", "[ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff]:65535", "icmp", "130.8M", "130.8M", "130.8M", "130.8M"},
-//             {"[ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff]:65535", "[ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff]:65535", "icmp", "130.8M", "130.8M", "130.8M", "130.8M"},
-//             {"[ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff]:65535", "[ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff]:65535", "icmp", "130.8M", "130.8M", "130.8M", "130.8M"},
-//             {"[ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff]:65535", "[ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff]:65535", "icmp", "130.8M", "130.8M", "130.8M", "130.8M"},
-//             {"147.229.13.210:65067", "76.11.79.218:53913", "udp", "12.2M", "2.8k", "1.9M", "3.6K"},
-//             {"147.229.13.210:65067", "76.11.79.218:53913", "udp", "12.2M", "2.8k", "1.9M", "3.6K"},
-//             {"147.229.13.210", "76.11.79.218", "icmp", "50.1k", "120", "35k", "20"}
-//         };
-
-//         werase(table_win);  // Clear the window
-//         box(table_win, 0, 0);  // Draw a box around the window
-//         draw_table(table_win, data);  // Draw the table with updated values
-
-//         napms(1000);  // Wait for 1 second
-//     }
+        napms(this->updateInterval * 1000);  
+    }
+}

@@ -6,7 +6,7 @@ SRC = $(wildcard *.cpp)
 OBJ = $(patsubst %.cpp,%.o,$(SRC))
 
 CPP = g++
-CPPFLAGS = -std=c++20 -Wall -Wextra -pedantic
+CPPFLAGS = -std=c++20 -Wall -Wextra -pedantic -g
 LIBS = -lncurses -lpcap
 
 .PHONY: all clean run pack doc

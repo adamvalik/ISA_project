@@ -8,29 +8,32 @@
 
 #include "Controller.hpp"
 
-Controller::Controller(int argc, char** argv) {
-    this->sortOpt = "b";
-    this->updateInterval = 1;
+void Controller::run(int argc, char** argv) {
     this->parseArguments(argc, argv);
-    this->networkCapture.setInterface(this->interface);
     this->networkCapture.prepareHandle();
-}
+    handle = this->networkCapture.getHandle();
 
-void Controller::run() {
-    // initscr();              // Start ncurses mode
-    // noecho();               // Don't echo keypresses
-    // cbreak();               // Disable line buffering
-    // curs_set(0);            // Hide the cursor
-
-    // statsDisplay.init();
+    // ncurses setup
+    initscr();
+    noecho();
+    cbreak();
+    curs_set(0); 
 
     thread captureThread(&NetworkCapture::startCapture, &networkCapture);
-    // thread displayThread(&StatsDisplay::run, &statsDisplay);
+    thread displayThread(&StatsDisplay::run, &statsDisplay);
 
     captureThread.join();
-    // displayThread.join();
+    displayThread.join();
+
+    if (threadException) {
+        rethrow_exception(threadException);  
+    }
 
     // cleanup
+    if (ncursesRunning) {
+        endwin();
+        ncursesRunning = false;
+    }
 }
 
 void Controller::parseArguments(int argc, char** argv) {
@@ -63,30 +66,33 @@ void Controller::parseArguments(int argc, char** argv) {
     for (int i = 1; i < argc; i++) {
         string arg = argv[i];
         if (arg == "-i") {
-            this->interface = argv[++i];
-            if (!NetworkInterface::validateInterface(this->interface)) {
+            string interface = argv[++i];
+            if (!NetworkInterface::validateInterface(interface)) {
                 NetworkInterface::listInterfaces();
-                throw NetworkException(1, "Invalid interface: " + this->interface);
+                throw NetworkException(1, "Invalid interface: " + interface);
             }
+            this->networkCapture.setInterface(interface);
         } else if (arg == "-s") {
-            this->sortOpt = argv[++i];
-            if (this->sortOpt != "b" && this->sortOpt != "p") {
+            string sortOpt = argv[++i];
+            if (sortOpt != "b" && sortOpt != "p") {
                 this->printUsage();
-                throw NetworkException(1, "Invalid sort option: " + this->sortOpt + " (must be b or p)");
+                throw NetworkException(1, "Invalid sort option: " + sortOpt + " (must be b or p)");
             }
+            this->connectionCol.setSortOpt(sortOpt[0]);
         } else if (arg == "-t") {
-            string strTimeOpt = argv[++i];
+            int timeOpt;
             try {
-                this->updateInterval = stoi(strTimeOpt);
+                timeOpt = stoi(argv[++i]);
             } catch (const invalid_argument& e) {
                 this->printUsage();
                 throw NetworkException(1, "Time option must be an integer");
             }
 
-            if (this->updateInterval < 1) {
+            if (timeOpt < 1) {
                 this->printUsage();
                 throw NetworkException(1, "Time option must be a positive integer");
             }
+            this->statsDisplay.setUpdateInterval(timeOpt);
         } else {
             this->printUsage();
             throw NetworkException(1, "Unknown argument: " + arg);

@@ -10,9 +10,11 @@
 #define NETWORKINTERFACE_HPP
 
 #include "NetworkException.hpp"
+#include "globals.hpp"
 
 #include <pcap/pcap.h>
 #include <iostream>
+#include <ncurses.h>
 
 using namespace std;
 

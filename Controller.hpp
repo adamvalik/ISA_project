@@ -14,6 +14,7 @@
 #include "NetworkCapture.hpp"
 #include "ConnectionCol.hpp"
 #include "StatsDisplay.hpp"
+#include "globals.hpp"
 
 #include <string>
 #include <thread>
@@ -29,13 +30,9 @@ using namespace std;
  */
 class Controller {
 
-    string interface;
-    string sortOpt;
-    int updateInterval;
-
+    ConnectionCol connectionCol;
     NetworkCapture networkCapture;
-    // ConnectionCol connectionCol;
-    // StatsDisplay statsDisplay;
+    StatsDisplay statsDisplay;
 
     /**
      * @brief Parse CLI args: ./isa-top -i int [-s b|p] [-t s]
@@ -53,19 +50,12 @@ class Controller {
 
 
     public:
-        Controller(int argc, char** argv);
+        Controller() : connectionCol(), networkCapture(connectionCol), statsDisplay(connectionCol) {};
 
         /**
          * @brief 
          */
-        void run();
-
-        /**
-         * @brief Signal handler for SIGINT (Ctrl+C)
-         * 
-         * @param signum Signal number
-         */
-        static void signalHandler(int signum);
+        void run(int argc, char** argv);
 };
 
 #endif // CONTROLLER_HPP
