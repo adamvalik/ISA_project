@@ -1,3 +1,48 @@
-MAN PAGE TBD
-
-https://liw.fi/manpages/
+.TH ISA-TOP 1
+.SH NAME
+isa-top \- monitoring network traffic statistics
+.SH SYNOPSIS
+.B isa-top
+\fB\-i\fR \fIinterface\fR
+[\fB\-s\fR \fBb|p\fR]
+[\fB\-t\fR \fIseconds\fR]
+.SH DESCRIPTION
+.B isa-top
+captures packets on the specified interface and displays real-time statistics about the connections and speed of the traffic.
+.SH OPTIONS
+.TP
+.B \-i \fIinterface\fR
+Specify the network interface to capture traffic on. This option is required for the application to start monitoring.
+.TP
+.B \-s b|p\fR
+Sort the output by either bytes (`b`) or packets (`p`) per second. The default sorting option is by bytes (`b`).
+.TP
+.B \-t \fIseconds\fR
+Set the update time interval in seconds. The default interval is 1 second.
+.TP
+.B \-i
+Display a list of active network interfaces.
+.TP
+.B \-h, \-\-help
+Display a help message.
+.SH EXAMPLES
+To capture network traffic on the `en0` interface and sort the output by bytes per second:
+.nf
+.RS
+$ ./isa-top -i en0
+.RE
+.fi
+.PP
+To capture traffic on the `en0` interface, sort the output by packets per second and update every 5 seconds:
+.nf
+.RS
+$ ./isa-top -i en0 -s p -t 5
+.RE
+.fi
+.PP
+To display a list of active network interfaces without capturing any traffic:
+.nf
+.RS
+$ ./isa-top -i
+.RE
+.fi
