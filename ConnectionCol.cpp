@@ -23,7 +23,6 @@ void ConnectionCol::updateTable(const string& srcIp, int srcPort, const string& 
         sent = false;
     }
     connections[key].updateTransfer(bytes, sent);
-    // printf("Connection %s -> %s: %llu bytes\n", src.c_str(), dst.c_str(), bytes);
 }
 
 vector<Connection> ConnectionCol::getConnections() {
