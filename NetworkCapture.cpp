@@ -31,7 +31,11 @@ void NetworkCapture::prepareHandle() {
     }
 
     // filter expression
-    char filter[] = "ip or ip6";
+    const char *filter = "ip or ip6";
+
+    // filter expression for testing purposes
+    // const char *filter = "host 1.1.1.1";
+
 
     // compile the filter expression 
     struct bpf_program fp;
@@ -61,15 +65,13 @@ void NetworkCapture::startCapture() {
 
 
 void NetworkCapture::processPacket(u_char *user, const struct pcap_pkthdr *header, const u_char *bytes) {
-    // header->ts - timestamp
-    // header->len; // length of the packet in bytes
-
     const struct ether_header *eth_header = (const struct ether_header *)bytes;
     uint8_t protocol = 0;
     int offset = sizeof(struct ether_header);
 
     string srcIp, dstIp, protocolName;
     int srcPort = -1, dstPort = -1;
+    int len = 0;
 
     if (ntohs(eth_header->ether_type) == ETHERTYPE_IP) {
         // IPv4
@@ -77,6 +79,7 @@ void NetworkCapture::processPacket(u_char *user, const struct pcap_pkthdr *heade
         // convert from binary to text using inet_ntoa()
         srcIp = inet_ntoa(ip_header->ip_src);
         dstIp = inet_ntoa(ip_header->ip_dst);
+        len = ntohs(ip_header->ip_len);
 
         protocol = ip_header->ip_p;
         offset += ip_header->ip_hl * 4; // IPv4 header length is variable 20-60 bytes
@@ -91,6 +94,7 @@ void NetworkCapture::processPacket(u_char *user, const struct pcap_pkthdr *heade
         inet_ntop(AF_INET6, &ip6_header->ip6_dst, ip6_dst, INET6_ADDRSTRLEN);
         srcIp = ip6_src;
         dstIp = ip6_dst;
+        len = ntohs(ip6_header->ip6_plen);
 
         protocol = ip6_header->ip6_ctlun.ip6_un1.ip6_un1_nxt;
         offset += sizeof(struct ip6_hdr); // IPv6 header is always 40 bytes
@@ -133,10 +137,9 @@ void NetworkCapture::processPacket(u_char *user, const struct pcap_pkthdr *heade
     }
 
     // update connection table
-    
     ConnectionCol* connCol = reinterpret_cast<ConnectionCol*>(user);
 
     dataMutex.lock();
-    connCol->updateTable(srcIp, srcPort, dstIp, dstPort, protocolName, header->len);
+    connCol->updateTable(srcIp, srcPort, dstIp, dstPort, protocolName, len); // header-len
     dataMutex.unlock();
 }
