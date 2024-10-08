@@ -46,16 +46,28 @@ void Controller::parseArguments(int argc, char** argv) {
 
     // ./isa-top -h | --help
     if (argc == 2 && (string(argv[1]) == "-h" || string(argv[1]) == "--help")) {
+        if (ncursesRunning) {
+            endwin();
+            ncursesRunning = false;
+        }
         this->printUsage();
         throw NetworkException(0);
     }
     
     if (argc == 1) {
+        if (ncursesRunning) {
+            endwin();
+            ncursesRunning = false;
+        }
         this->printUsage();
         throw NetworkException(1, "No arguments specified");
     }
 
     if (argc % 2 == 0 || argc > 7) {
+        if (ncursesRunning) {
+            endwin();
+            ncursesRunning = false;
+        }
         this->printUsage();
         throw NetworkException(1, "Invalid number of arguments");
     }
@@ -94,6 +106,10 @@ void Controller::parseArguments(int argc, char** argv) {
             }
             this->statsDisplay.setUpdateInterval(timeOpt);
         } else {
+            if (ncursesRunning) {
+                endwin();
+                ncursesRunning = false;
+            }
             this->printUsage();
             throw NetworkException(1, "Unknown argument: " + arg);
         }
@@ -103,9 +119,10 @@ void Controller::parseArguments(int argc, char** argv) {
 void Controller::printUsage() const {
     cerr << endl;
     cerr << "Usage: ./isa-top -i int [-s b|p] [-t s]" << endl;
-    cerr << "  -i [INTERFACE]                   interface to capture network traffic on" << endl;
+    cerr << "  -i [interface]                   interface to capture network traffic on" << endl;
     cerr << "  -s b|p         (default: b)      sort output by bytes/packets per second" << endl;
-    cerr << "  -t [SECONDS]   (default: 1s)     update time interval" << endl;
+    cerr << "  -t [seconds]   (default: 1s)     update time interval" << endl;
     cerr << "  -i                               display active interfaces" << endl;
     cerr << "  -h|--help                        display usage" << endl << endl;
+    cerr << "run $ man ./isa-top.1 for more information" << endl << endl;
 }
