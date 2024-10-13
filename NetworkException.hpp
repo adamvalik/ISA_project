@@ -29,13 +29,13 @@ class NetworkException : public exception {
 
         /**
          * @brief Get exception message
-         * @return Exception message
+         * @return const char* Exception message
          */
         const char* what() const noexcept override;
         
         /**
          * @brief Get exit code
-         * @return Exit code
+         * @return int Exit code
          */
         int getExitCode() const;
 };

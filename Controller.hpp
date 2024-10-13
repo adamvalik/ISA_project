@@ -48,14 +48,22 @@ class Controller {
      */
     void printUsage() const;
 
-
     public:
         Controller() : connectionCol(), networkCapture(connectionCol), statsDisplay(connectionCol) {};
 
         /**
-         * @brief 
+         * @brief Run the controller
+         * @throws NetworkException
+         * 
+         * @param argc Number of arguments
+         * @param argv Command-line arguments
          */
         void run(int argc, char** argv);
+
+        /**
+         * @brief Close ncurses window
+         */
+        static void closeNcurses();
 };
 
 #endif // CONTROLLER_HPP

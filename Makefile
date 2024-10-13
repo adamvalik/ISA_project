@@ -6,10 +6,10 @@ SRC = $(wildcard *.cpp)
 OBJ = $(patsubst %.cpp,%.o,$(SRC))
 
 CPP = g++
-CPPFLAGS = -std=c++20 -Wall -Wextra -pedantic -g
+CPPFLAGS = -std=c++20 -Wall -Wextra -pedantic
 LIBS = -lncurses -lpcap
 
-.PHONY: all clean run pack doc
+.PHONY: all clean run pack doc remake
 
 .DEFAULT_GOAL := all
 
@@ -24,11 +24,13 @@ $(EXEC): $(OBJ)
 clean:
 	rm -f *.o $(EXEC)
 
+remake: clean all
+
 run: all
 	./isa-top -i ap1 
 
 pack: clean
-	
+#tbd
 
 doc: 
 	doxygen Doxyfile

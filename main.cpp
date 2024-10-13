@@ -14,6 +14,7 @@
 #include <atomic>
 #include <ncurses.h>
 
+// global variables initialization
 atomic<bool> running(true);
 atomic<bool> ncursesRunning(false);
 mutex dataMutex;
@@ -43,6 +44,7 @@ void signalHandler(int signum) {
 int main(int argc, char* argv[]) {
     signal(SIGINT, signalHandler);
 
+    // ncurses setup
     initscr();
     ncursesRunning = true;
     noecho();
@@ -53,15 +55,11 @@ int main(int argc, char* argv[]) {
         Controller controller;
         controller.run(argc, argv);
     } catch (const NetworkException& e) {
-        if (ncursesRunning) {
-            endwin();
-            ncursesRunning = false;
-        }
+        Controller::closeNcurses();
         if (e.getExitCode() != EXIT_SUCCESS) {
             cerr << "[ERROR] " << e.what() << endl << endl;
         }
         return e.getExitCode();
     }
-    // cleanup
     return EXIT_SUCCESS;
 }

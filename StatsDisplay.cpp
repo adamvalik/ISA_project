@@ -8,13 +8,17 @@
 
 #include "StatsDisplay.hpp"
 
-const int col_positions[] = {1, 49, 101, 113, 122, 134, 143}; // column positions for data
-const int header_positions[] = {19, 67, 100, 113, 134}; // column positions for headers
-const int lines_positions[] = {48, 96, 108, 129}; // vertical lines positions
+// column positions for data
+const int col_positions[] = {1, 49, 101, 113, 122, 134, 143}; 
+// column positions for headers
+const int header_positions[] = {19, 67, 100, 113, 134}; 
+// vertical lines positions
+const int lines_positions[] = {48, 96, 108, 129};
 
 void StatsDisplay::drawTable(vector<Connection>& data) {
     //"                  SRC IP:PORT                                     DST IP:PORT                      PROTO        b/s  RX  p/s         b/s  TX  p/s    ");
-    //|[ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff]:65535|[ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff]:65535|    TCP    |    20        20   |   130.8M  130.8M   |
+    //|[ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff]:65535|[ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff]:65535|    TCP    |    20        20   |   130.8M   130.8M   |
+    
     // header 
     mvwprintw(this->tableWin, 2, header_positions[0], "SRC IP:PORT");
     mvwprintw(this->tableWin, 2, header_positions[1], "DST IP:PORT");
@@ -41,7 +45,8 @@ void StatsDisplay::drawTable(vector<Connection>& data) {
         mvwprintw(this->tableWin, 5 + i, col_positions[6], this->formatPerSec(conn.getTxPackets()).c_str());
     }
    
-    wrefresh(this->tableWin);  // refresh the window to show the table
+    // refresh the window to show the table
+    wrefresh(this->tableWin);  
 }
 
 string StatsDisplay::formatPerSec(uint64_t bytes) {

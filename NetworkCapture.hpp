@@ -23,9 +23,6 @@
 #include <netinet/ip6.h>
 #include <netinet/udp.h>
 #include <netinet/tcp.h>
-#include <netinet/ip_icmp.h>
-#include <netinet/icmp6.h>
-#include <netinet/igmp.h>
 
 using namespace std;
 
@@ -42,20 +39,43 @@ class NetworkCapture {
     public:
         NetworkCapture(ConnectionCol& connectionCol) : handle(nullptr), connectionCol(connectionCol) {};
 
+        /**
+         * @brief Set interface
+         * 
+         * @param interface Interface name
+         */
         void setInterface(const string& interface) {
             this->interface = interface;
         };
 
+        /**
+         * @brief Get handle 
+         * 
+         * @return pcap_t* handle
+         */
         pcap_t* getHandle() {
             return this->handle;
         };
 
         /**
-         * @brief 
+         * @brief Prepare handle for capturing network traffic (open interface, set filter)
+         * @see https://www.tcpdump.org/manpages/pcap_open_live.3pcap.html
          */
-        void startCapture();
         void prepareHandle();
 
+        /**
+         * @brief Start capturing network traffic (pcap_loop)
+         * @see https://www.tcpdump.org/manpages/pcap_loop.3pcap.html
+         */
+        void startCapture();
+
+        /**
+         * @brief Process packet
+         * 
+         * @param user User data
+         * @param header Packet header
+         * @param bytes Packet data
+         */
         static void processPacket(u_char *user, const struct pcap_pkthdr *header, const u_char *bytes);
 };
 

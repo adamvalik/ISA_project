@@ -18,10 +18,7 @@ void NetworkInterface::listInterfaces() {
     }
 
     // disable ncurses to print to stdout
-    if (ncursesRunning) {
-        endwin();
-        ncursesRunning = false;
-    }
+    Controller::closeNcurses();
 
     // list all active interfaces
     cout << endl << "Active interfaces:" << endl;

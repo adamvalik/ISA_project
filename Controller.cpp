@@ -11,29 +11,27 @@
 void Controller::run(int argc, char** argv) {
     this->parseArguments(argc, argv);
     this->networkCapture.prepareHandle();
+
+    // set the global handle for the ability to stop the capture from the signal handler
     handle = this->networkCapture.getHandle();
 
-    // ncurses setup
-    initscr();
-    noecho();
-    cbreak();
-    curs_set(0); 
-
+    // thread for capturing network traffic (pcap_loop)
     thread captureThread(&NetworkCapture::startCapture, &networkCapture);
+
+    // thread for displaying statistics 
     thread displayThread(&StatsDisplay::run, &statsDisplay);
 
+    // wait for threads to finish
     captureThread.join();
     displayThread.join();
 
+    // if an exception was thrown in the threads, rethrow it
     if (threadException) {
         rethrow_exception(threadException);  
     }
 
     // cleanup
-    if (ncursesRunning) {
-        endwin();
-        ncursesRunning = false;
-    }
+    this->closeNcurses();
 }
 
 void Controller::parseArguments(int argc, char** argv) {
@@ -46,28 +44,19 @@ void Controller::parseArguments(int argc, char** argv) {
 
     // ./isa-top -h | --help
     if (argc == 2 && (string(argv[1]) == "-h" || string(argv[1]) == "--help")) {
-        if (ncursesRunning) {
-            endwin();
-            ncursesRunning = false;
-        }
+        this->closeNcurses();
         this->printUsage();
         throw NetworkException(0);
     }
     
     if (argc == 1) {
-        if (ncursesRunning) {
-            endwin();
-            ncursesRunning = false;
-        }
+        this->closeNcurses();
         this->printUsage();
         throw NetworkException(1, "No arguments specified");
     }
 
     if (argc % 2 == 0 || argc > 7) {
-        if (ncursesRunning) {
-            endwin();
-            ncursesRunning = false;
-        }
+        this->closeNcurses();
         this->printUsage();
         throw NetworkException(1, "Invalid number of arguments");
     }
@@ -87,6 +76,7 @@ void Controller::parseArguments(int argc, char** argv) {
         } else if (arg == "-s") {
             string sortOpt = argv[++i];
             if (sortOpt != "b" && sortOpt != "p") {
+                this->closeNcurses();
                 this->printUsage();
                 throw NetworkException(1, "Invalid sort option: " + sortOpt + " (must be b or p)");
             }
@@ -96,20 +86,19 @@ void Controller::parseArguments(int argc, char** argv) {
             try {
                 timeOpt = stoi(argv[++i]);
             } catch (const invalid_argument& e) {
+                this->closeNcurses();
                 this->printUsage();
                 throw NetworkException(1, "Time option must be an integer");
             }
 
             if (timeOpt < 1) {
+                this->closeNcurses();
                 this->printUsage();
                 throw NetworkException(1, "Time option must be a positive integer");
             }
             this->statsDisplay.setUpdateInterval(timeOpt);
         } else {
-            if (ncursesRunning) {
-                endwin();
-                ncursesRunning = false;
-            }
+            this->closeNcurses();
             this->printUsage();
             throw NetworkException(1, "Unknown argument: " + arg);
         }
@@ -125,4 +114,12 @@ void Controller::printUsage() const {
     cerr << "  -i                               display active interfaces" << endl;
     cerr << "  -h|--help                        display usage" << endl << endl;
     cerr << "run $ man ./isa-top.1 for more information" << endl << endl;
+}
+
+void Controller::closeNcurses() {
+    // ensure that ncurses is still running before closing it (closing twice causes errors)
+    if (ncursesRunning) {
+        endwin();
+        ncursesRunning = false;
+    }
 }

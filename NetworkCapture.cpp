@@ -25,7 +25,7 @@ void NetworkCapture::prepareHandle() {
     }
 
     // support only LINKTYPE_ETHERNET (corresponding to DLT_EN10MB) -> https://www.tcpdump.org/linktypes.html
-    if (pcap_datalink(this->handle) != DLT_EN10MB && pcap_datalink(this->handle) != DLT_NULL){
+    if (pcap_datalink(this->handle) != DLT_EN10MB){
         pcap_close(this->handle);
         throw NetworkException(1, "Unsupported link-layer header type");
     }
@@ -54,7 +54,7 @@ void NetworkCapture::prepareHandle() {
 }
 
 void NetworkCapture::startCapture() {
-    // process packets from a live capture
+    // process packets from a live capture (indefinitely -> until SIGINT)
     int ret = pcap_loop(this->handle, -1, NetworkCapture::processPacket, reinterpret_cast<u_char*>(&this->connectionCol));
     if (ret == PCAP_ERROR) {
         string error = pcap_geterr(this->handle);
@@ -65,14 +65,18 @@ void NetworkCapture::startCapture() {
 
 
 void NetworkCapture::processPacket(u_char *user, const struct pcap_pkthdr *header, const u_char *bytes) {
+    (void)header;
+
+    // NETWORK LAYER
     const struct ether_header *eth_header = (const struct ether_header *)bytes;
     uint8_t protocol = 0;
     int offset = sizeof(struct ether_header);
 
     string srcIp, dstIp, protocolName;
-    int srcPort = -1, dstPort = -1;
+    int srcPort = -1, dstPort = -1; // -1 for unset
     int len = 0;
 
+    // INTERNET LAYER
     if (ntohs(eth_header->ether_type) == ETHERTYPE_IP) {
         // IPv4
         const struct ip *ip_header = (const struct ip *)(bytes + offset);
@@ -105,6 +109,7 @@ void NetworkCapture::processPacket(u_char *user, const struct pcap_pkthdr *heade
         dstIp = "unknown";
     }
 
+    // TRANSPORT LAYER
     if (protocol == IPPROTO_TCP) {
         // TCP
         const struct tcphdr *tcp_header = (const struct tcphdr *)(bytes + offset);
@@ -140,6 +145,6 @@ void NetworkCapture::processPacket(u_char *user, const struct pcap_pkthdr *heade
     ConnectionCol* connCol = reinterpret_cast<ConnectionCol*>(user);
 
     dataMutex.lock();
-    connCol->updateTable(srcIp, srcPort, dstIp, dstPort, protocolName, len); // header-len
+    connCol->updateTable(srcIp, srcPort, dstIp, dstPort, protocolName, len); 
     dataMutex.unlock();
 }

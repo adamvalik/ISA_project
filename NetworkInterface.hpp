@@ -10,6 +10,7 @@
 #define NETWORKINTERFACE_HPP
 
 #include "NetworkException.hpp"
+#include "Controller.hpp"
 #include "globals.hpp"
 
 #include <pcap/pcap.h>
@@ -23,6 +24,7 @@ using namespace std;
  * @brief Abstract class for network interfaces
  */
 class NetworkInterface {
+
     public:
         /**
          * @brief List all active interfaces
@@ -31,6 +33,12 @@ class NetworkInterface {
          */
         static void listInterfaces();
 
+        /**
+         * @brief Validate interface
+         * @param interface Interface name
+         * @throws NetworkException
+         * @return bool True if the interface is valid
+         */
         static bool validateInterface(const string& interface);
 };
 
