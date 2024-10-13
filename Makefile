@@ -22,7 +22,7 @@ $(EXEC): $(OBJ)
 	$(CPP) $(CPPFLAGS) -c $< -o $@
 
 clean:
-	rm -f *.o $(EXEC)
+	rm -f *.o $(EXEC) xvalik05.tar
 
 remake: clean all
 
@@ -30,7 +30,7 @@ run: all
 	./isa-top -i ap1 
 
 pack: clean
-#tbd
+	tar -cvf xvalik05.tar *.cpp *.hpp Makefile Doxyfile LICENSE isa-top.1 trafficGen.py
 
 doc: 
 	doxygen Doxyfile
