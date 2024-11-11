@@ -36,7 +36,6 @@ void NetworkCapture::prepareHandle() {
     // filter expression for testing purposes
     // const char *filter = "host 1.1.1.1";
 
-
     // compile the filter expression 
     struct bpf_program fp;
     if (pcap_compile(this->handle, &fp, filter, 0, net) == PCAP_ERROR) {
