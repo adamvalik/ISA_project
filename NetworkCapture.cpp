@@ -25,7 +25,8 @@ void NetworkCapture::prepareHandle() {
     }
 
     // support only LINKTYPE_ETHERNET (corresponding to DLT_EN10MB) -> https://www.tcpdump.org/linktypes.html
-    if (pcap_datalink(this->handle) != DLT_EN10MB){
+    // and loopback (DLT_NULL) 
+    if (pcap_datalink(this->handle) != DLT_EN10MB && pcap_datalink(this->handle) != DLT_NULL) {
         pcap_close(this->handle);
         throw NetworkException(1, "Unsupported link-layer header type");
     }

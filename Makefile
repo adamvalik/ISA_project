@@ -6,7 +6,7 @@ SRC = $(wildcard *.cpp)
 OBJ = $(patsubst %.cpp,%.o,$(SRC))
 
 CPP = g++
-CPPFLAGS = -std=c++20 -Wall -Wextra -pedantic
+CPPFLAGS = -std=c++20 #-Wall -Wextra -pedantic -O2 -Werror
 LIBS = -lncurses -lpcap
 
 .PHONY: all clean run pack doc remake
@@ -30,7 +30,7 @@ run: all
 	./isa-top -i ap1 
 
 pack: clean
-	tar -cvf xvalik05.tar *.cpp *.hpp Makefile Doxyfile LICENSE isa-top.1 trafficGen.py
+	tar -cvf xvalik05.tar *.cpp *.hpp Makefile Doxyfile LICENSE isa-top.1 trafficGen.py manual.pdf
 
 doc: 
 	doxygen Doxyfile

@@ -34,9 +34,11 @@ def generate_traffic(interface, ip_version, proto, src_ip, src_port, dst_ip, dst
 
 
 if __name__ == "__main__":
-    interface = "en0"  
-    IPv4 = 4
-    IPv6 = 6
+    generate_traffic("en0", 4, "UDP", "1.1.1.1", 1, "2.2.2.2", 2, 4000, 100)
+    generate_traffic("en0", 4, "UDP", "2.2.2.2", 2, "1.1.1.1", 1, 3000, 100)
+    generate_traffic("en0", 4, "TCP", "2.2.2.2", 2, "1.1.1.1", 1, 2000, 100)
+    generate_traffic("en0", 4, "TCP", "1.1.1.1", 1, "2.2.2.2", 2, 1000, 100)
+    
 
-    # generate traffic
-    generate_traffic(interface, IPv4, "UDP", "1.1.1.1", 1, "2.2.2.2", 2, 1000, 0)
+
+

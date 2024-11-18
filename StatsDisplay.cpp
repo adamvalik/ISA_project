@@ -83,6 +83,14 @@ void StatsDisplay::run() {
 
         drawTable(data); 
 
-        napms(this->updateInterval * 1000);  
+        // in case of long update interval, during the sleep, check if the program is still running (every second)
+        int sleptTimeMs = 0;
+        while (sleptTimeMs < this->updateInterval * 1000) {
+            if (!running) {
+                break; 
+            }
+            napms(1000);
+            sleptTimeMs += 1000;
+        }
     }
 }
