@@ -34,3 +34,5 @@ EXAMPLES
        To display a list of active network interfaces without capturing any traffic:
               $ ./isa-top -i
 ```
+
+For more information about isa-top, read manual.pdf file in the repository.
